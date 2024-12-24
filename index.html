@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TON Wallet Transfer</title>
+    <!-- TonConnect UI and TonWeb -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/tonweb/dist/tonweb.min.js"></script>
+</head>
+<body>
+    <h1>TON Wallet Transfer</h1>
+
+    <!-- TON Connect button -->
+    <div id="ton-connect"></div>
+    
+    <!-- Transfer button -->
+    <button id="transferBtn" style="display: none;">Transfer 0.2 TON</button>
+
+    <p id="status"></p>
+
+    <script>
+        const walletAAddress = "YOUR_WALLET_A_ADDRESS"; // Replace with Wallet A's address
+        const transferAmount = 0.2 * Math.pow(10, 9); // Convert 0.2 TON to nanoTON
+
+        // Initialize TON Connect UI
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://your-app-url.com/manifest.json', // Replace with your hosted manifest URL
+            buttonRootId: 'ton-connect'
+        });
+
+        const transferBtn = document.getElementById("transferBtn");
+        const status = document.getElementById("status");
+
+        // Handle Wallet Connection
+        tonConnectUI.onStatusChange(async (walletDetails) => {
+            if (walletDetails) {
+                const walletBAddress = walletDetails.account.address;
+                status.innerText = `Connected to Wallet B: ${walletBAddress}`;
+                transferBtn.style.display = "block"; // Show the transfer button
+            } else {
+                status.innerText = "Please connect your wallet.";
+                transferBtn.style.display = "none"; // Hide the transfer button
+            }
+        });
+
+        // Function to Initiate Transfer
+        async function initiateTransfer(walletDetails) {
+            try {
+                // Transaction details
+                const transaction = {
+                    to: walletAAddress,
+                    value: transferAmount.toString(), // Value in nanoTON as a string
+                };
+
+                // Send the transaction using TonConnect
+                await tonConnectUI.sendTransaction(transaction);
+
+                status.innerText = `Transaction successfully sent to ${walletAAddress} for 0.2 TON!`;
+            } catch (error) {
+                status.innerText = `Transfer failed: ${error.message}`;
+                console.error("Transaction Error:", error);
+            }
+        }
+
+        // Add event listener to the transfer button
+        transferBtn.addEventListener("click", async () => {
+            const walletDetails = await tonConnectUI.getWalletDetails();
+            if (walletDetails) {
+                initiateTransfer(walletDetails);
+            } else {
+                alert("Please connect your wallet first.");
+            }
+        });
+    </script>
+</body>
+</html>
